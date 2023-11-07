@@ -1,3 +1,4 @@
+//firebase emulators:start
 import { faker } from 'https://cdn.skypack.dev/@faker-js/faker';
 
 console.log("Firebase Tutorial Logging Start")
