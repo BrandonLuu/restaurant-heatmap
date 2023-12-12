@@ -1,37 +1,25 @@
-// npm start; gcloud app deploy
+// npm start; gcloud app deploy client.yaml
 
 const express = require('express');
 const path = require(`path`);
-const ejs = require('ejs');
+// const cors = require('cors');
 
 const app = express();
 // app.use(express.json); // JSON
 // app.use(express.urlencoded({extended: true}));
 
 app.use(express.static(path.join(__dirname, 'public')));
-// app.set('view engine', 'ejs');
-
+// app.use(express.static(path.join(__dirname, 'public', "dist")));
 
 app.get('/', (req, res) => {
   res.send('Hello from App Engine!');
 });
 
 app.get('/heatmap', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/views/heatmap.html'));
+  app.use(express.static(path.join(__dirname, 'public', "dist")));
+  // res.sendFile(path.join(__dirname, 'public/views/heatmap.html'));
+  res.sendFile(path.join(__dirname, 'public/dist/index.html'));
 });
-
-app.get('/submit', (req, res) => {
-  res.sendFile(path.join(__dirname, '/views/form.html')); //broken link
-});
-
-app.post('/submit', (req, res) => {
-  console.log({
-    name: req.body.name,
-    message: req.body.message,
-  });
-  res.send('Thanks for your message!');
-});
-
 
 
 // Listen to the App Engine-specified port, or 8080 otherwise

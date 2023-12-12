@@ -1,37 +1,12 @@
-//firebase emulators:start
-import { faker } from 'https://cdn.skypack.dev/@faker-js/faker';
+//firebase emulators:start; npm test
+// import axios from 'axios';
+// import react from 'react-dom';
+// import "@babel/register";
 
 console.log("Heatmap Logging Start")
 
-// const signInBtn = document.getElementById('signInBtn');
-// const signOutBtn = document.getElementById('signOutBtn');
-
-// const auth = firebase.auth();
-// const provider = new firebase.auth.GoogleAuthProvider();
-// const provider = new firebase.auth.EmailAuthProvider
-
-// Sign in event handlers
-// signInBtn.onclick = () => auth.signInWithPopup(provider);
-// signOutBtn.onclick = () => auth.signOut();
-
-// https://github.com/firebase/quickstart-js/blob/master/auth/email-password.html
-
-// const whenSignedIn = document.getElementById('whenSignedIn');
-// const whenSignedOut = document.getElementById('whenSignedOut');
-// const userDetails = document.getElementById('userDetails');
-
-// const createThing = document.getElementById('createThing');
-// const thingsList = document.getElementById('thingsList');
-
-// const db = firebase.firestore();
-
 let thingsRef;
 let unsubscribe;
-
-// GOOGLE MAPS
-// This example requires the Places library. Include the libraries=places
-// parameter when you first load the API. For example:
-// <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 let map;
 let service;
 let infowindow;
@@ -40,8 +15,15 @@ let searchDataMap = new Map();
 let userTags = new Set();
 let mapCenter;
 
-//todo: link checkbox/submit
-function linkUI(){
+
+// // Clear the existing HTML content
+// document.body.innerHTML = '<div id="app"></div>';
+
+// // // Render your React component instead
+// const root = createRoot(document.getElementById('app'));
+// root.render(<h1>Hello, world</h1>);
+
+function linkUI() {
     document
         .getElementById("toggle-heatmap")
         .addEventListener("click", toggleHeatmap);
@@ -56,7 +38,7 @@ function linkUI(){
         .addEventListener("click", changeRadius);
     document
         .getElementById("update-heatmap")
-        .addEventListener("click", updateHeatmap);    
+        .addEventListener("click", updateHeatmap);
 }
 
 function initMap() {
@@ -68,36 +50,36 @@ function initMap() {
         center: mapCenter,
         zoom: 14,
     });
-    
+
     heatmap = new google.maps.visualization.HeatmapLayer({
         map: map,
     });
-    
+
     linkUI();
 }
 
-function setCenter(){
-    mapCenter = new google.maps.LatLng(-33.867, 151.195); //sydney
+function setCenter() {
+    mapCenter = new google.maps.LatLng(-33.8670522, 151.1957362); //sydney
 }
 
-function getCenter(){
+function getCenter() {
     return mapCenter;
 }
 
-function getUserCheckbox(){
+function getUserCheckbox() {
     let foodTags = document.getElementById("foodTagForm");
 
-    for(let i=0; i<foodTags.length; i++){
-        if(foodTags[i].checked){
+    for (let i = 0; i < foodTags.length; i++) {
+        if (foodTags[i].checked) {
             userTags.add(foodTags[i].value);
-        }else{
+        } else {
             userTags.delete(foodTags[i].value);
             searchDataMap.delete(foodTags[i].value);
         }
-    }    
+    }
 }
 
-function updateHeatmap(){
+function updateHeatmap() {
     //temp
     let center = mapCenter;
 
@@ -107,7 +89,7 @@ function updateHeatmap(){
     // check user's tags against current tags
     // if new tags: search iterate thru new tags
     // if del tags: delete tags or remove from displaying
-    for(const tag of userTags){
+    for (const tag of userTags) {
         console.log("searching: ", tag)
         searchForTagLocation(center, tag);
     }
@@ -157,56 +139,85 @@ zoo	activity
 */
 
 function searchForTagLocation(center, tag) {
-    var request = {
+    var req = {
         location: center,
         radius: '1600', //1600:1, 4900:2, 8000:5
         type: [tag]
     };
+    const key = "AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs";
+    // const requestLocation = "-33.8670522%2C151.1957362";
+    const requestLocation = `${req.location.lat()}%2C${req.location.lng()}`;
+    // console.log(requestLocation);
 
-    service = new google.maps.places.PlacesService(map);
 
-    service.nearbySearch(request, (results, status) => {
-        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) return;
-        const dataPoints = [];
 
-        for (let i = 0; i < results.length; i++) {
-            // createMarker(results[i]);
-            // console.log(results[i].geometry.location.toString());
-            dataPoints.push(results[i].geometry.location);
-        }
+    // Search using Custom Endpoint
+    // axios.get(`https://localhost:8081/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
+    axios.get(`https://search-dot-absolute-realm-165220.wl.r.appspot.com/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
+        // headers: {
+        //     'Access-Control-Allow-Origin': '*',
+        // }
+    })
+        .then((response) => {
+            // console.log(response.status);
+            // console.log(response.data);
+            const dataPoints = [];
+            for (let i = 0; i < response.data.results.length; i++) {
+                console.log(response.data.results[i].geometry.location);
+                // const gMapLatLng = new google.maps.LatLng(response.data.results[i].geometry.location.lat, response.data.results[i].geometry.location.lng);
+                dataPoints.push(new google.maps.LatLng(
+                    response.data.results[i].geometry.location.lat,
+                    response.data.results[i].geometry.location.lng));
+            }
+            // map.setCenter(dataPoints[0].location);
+            searchDataMap.set(tag, dataPoints);
+            processHeatmapData();
+        })
+        .catch((error) => {
+            console.log(error);
+        })
 
-        // map.setCenter(results[0].geometry.location);
-        searchDataMap.set(tag, dataPoints);
-        processHeatmapData();
-    
-    });
+    // === NearbySearch using Google Maps API ===
+    // service = new google.maps.places.PlacesService(map);
+    // service.nearbySearch(req, (results, status) => {
+    //     if (status !== google.maps.places.PlacesServiceStatus.OK || !results) return;
+    //     const dataPoints = [];
+    //     for (let i = 0; i < results.length; i++) {
+    //         // createMarker(results[i]);
+    //         console.log(results[i].geometry.location.toString());
+    //         dataPoints.push(results[i].geometry.location);
+    //     }
+    //     // map.setCenter(results[0].geometry.location);
+    //     searchDataMap.set(tag, dataPoints);
+    //     processHeatmapData();
+    // });
 }
 
 // collects all heatmap tag datapoints into a single array for display
-function processHeatmapData(){
+function processHeatmapData() {
     let searchTags = new Set(searchDataMap.keys());
 
     const eqSet = (xs, ys) =>
         xs.size === ys.size &&
         [...xs].every((x) => ys.has(x));
-    
-    if(!eqSet(userTags, searchTags)) {
+
+    if (!eqSet(userTags, searchTags)) {
         console.log("unmatched: user:", userTags, " search:", searchTags);
         return;
     }
 
     let heatMapData = [];
 
-    for(let val of searchDataMap.values()){
+    for (let val of searchDataMap.values()) {
         heatMapData = heatMapData.concat(val);
     }
-    
+
     heatmap.setData(heatMapData);
     console.log("data: ", heatMapData.length);
 }
 
 
-function toggleHeatmap(){
+function toggleHeatmap() {
     heatmap.setMap(heatmap.getMap() ? null : map);
 }
 

@@ -13,7 +13,22 @@
 
   <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
+  <script type="importmap">
+    {
+      "imports": {
+        "axios": "https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/esm/axios.js"
+      }
+    }
+  </script>
 
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-is/18.2.0/umd/react-is.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script> -->
+
+
+  <!-- <script src="js/react-heatmap.js" type="module" defer></script> -->
   <script src="js/heatmap.js" type="module" defer></script>
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs&callback=initMap&libraries=places,visualization&v=weekly"
@@ -21,6 +36,9 @@
 </head>
 
 <body>
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="/js/jQuery.js"></script>
+  <button>Get JSON data</button> -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
     crossorigin="anonymous"></script>
@@ -52,18 +70,18 @@
 
 <!-- tag checkboxes -->
 <form action="/action_page.php" id="foodTagForm">
-<input type="checkbox" id="tag-restaurant" name="foodTag" value="restaurant">
-<label for="tag-restaurant">restaurant</label>
+  <input type="checkbox" id="tag-restaurant" name="foodTag" value="restaurant">
+  <label for="tag-restaurant">restaurant</label>
 
-<input type="checkbox" id="tag-bakery" name="foodTag" value="bakery">
-<label for="tag-bakery">bakery</label>
+  <input type="checkbox" id="tag-bakery" name="foodTag" value="bakery">
+  <label for="tag-bakery">bakery</label>
 
-<input type="checkbox" id="tag-cafe" name="foodTag" value="cafe">
-<label for="tag-cafe">cafe</label>
+  <input type="checkbox" id="tag-cafe" name="foodTag" value="cafe">
+  <label for="tag-cafe">cafe</label>
 
-<input type="checkbox" id="tag-bar" name="foodTag" value="bar">
-<label for="tag-bar">bar</label>
-<input type="button" id="update-heatmap" value="Update">
+  <input type="checkbox" id="tag-bar" name="foodTag" value="bar">
+  <label for="tag-bar">bar</label>
+  <input type="button" id="update-heatmap" value="Update">
 
 </form>
 
