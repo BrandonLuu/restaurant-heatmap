@@ -7,12 +7,17 @@
     "test": "nodemon server.js",
     "start": "node server.js",
     "build": "webpack",
-    "dev": "webpack serve"
+    "dev": "webpack serve",
+    "upload": "gcloud app deploy client.yaml"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@babel/register": "^7.22.15",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/roboto": "^5.0.8",
+    "@mui/material": "^5.15.0",
     "@react-google-maps/api": "^2.19.2",
     "axios": "^1.6.2",
     "cors": "^2.8.5",

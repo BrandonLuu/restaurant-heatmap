@@ -1,7 +1,19 @@
-//firebase emulators:start; npm test
+//firebase emulators:start; npm run build; npm run dev
 import axios from 'axios';
 import React, { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { useTheme } from '@mui/material/styles';
 
 console.log("Heatmap Logging Start")
 
@@ -12,23 +24,23 @@ let searchDataMap = new Map();
 let userTags = new Set();
 let mapCenter;
 
-function linkUI() {
-    document
-        .getElementById("toggle-heatmap")
-        .addEventListener("click", toggleHeatmap);
-    document
-        .getElementById("change-gradient")
-        .addEventListener("click", changeGradient);
-    document
-        .getElementById("change-opacity")
-        .addEventListener("click", changeOpacity);
-    document
-        .getElementById("change-radius")
-        .addEventListener("click", changeRadius);
-    document
-        .getElementById("update-heatmap")
-        .addEventListener("click", updateHeatmap);
-}
+// function linkUI() {
+//     document
+//         .getElementById("toggle-heatmap")
+//         .addEventListener("click", toggleHeatmap);
+//     document
+//         .getElementById("change-gradient")
+//         .addEventListener("click", toggeGradient);
+//     document
+//         .getElementById("change-opacity")
+//         .addEventListener("click", toggleOpacity);
+//     document
+//         .getElementById("change-radius")
+//         .addEventListener("click", toggeRadius);
+//     document
+//         .getElementById("update-heatmap")
+//         .addEventListener("click", updateHeatmap);
+// }
 
 function initMap() {
     // const sydney = new google.maps.LatLng(-33.867, 151.195);
@@ -44,7 +56,7 @@ function initMap() {
         map: map,
     });
 
-    linkUI();
+    // linkUI();
 }
 
 function setCenter() {
@@ -68,17 +80,19 @@ function getUserCheckbox() {
     }
 }
 
-function updateHeatmap() {
+function updateHeatmap(tag) {
     //temp
     let center = mapCenter;
 
+    // old code for searching up multiple tags
     // check user's tags against current tags
     // if new tags: search iterate thru new tags
     // if del tags: delete tags or remove from displaying
-    for (const tag of userTags) {
-        console.log("searching: ", tag)
-        searchForTagLocation(center, tag);
-    }
+    // for (const tag of userTags) {
+    //     console.log("searching: ", tag)
+    //     searchForTagLocation(center, tag);
+    // }
+    searchForTagLocation(center, tag);
 }
 
 function searchForTagLocation(center, tag) {
@@ -95,24 +109,28 @@ function searchForTagLocation(center, tag) {
     // Search using Custom Endpoint
     // axios.get(`https://localhost:8081/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
     axios.get(`https://search-dot-absolute-realm-165220.wl.r.appspot.com/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
-        // headers: {
-        //     'Access-Control-Allow-Origin': '*',
-        // }
     })
         .then((response) => {
             // console.log(response.status);
             // console.log(response.data);
             const dataPoints = [];
             for (let i = 0; i < response.data.results.length; i++) {
-                console.log(response.data.results[i].geometry.location);
+                console.log(`%c${response.data.results[i].name}: %clat: ${response.data.results[i].geometry.location.lat} lng: ${response.data.results[i].geometry.location.lng}`,
+                    "color:red", "color:green");
+                // console.log(response.data.results[i].name);
+
                 // const gMapLatLng = new google.maps.LatLng(response.data.results[i].geometry.location.lat, response.data.results[i].geometry.location.lng);
                 dataPoints.push(new google.maps.LatLng(
                     response.data.results[i].geometry.location.lat,
                     response.data.results[i].geometry.location.lng));
             }
+
+            // Collect datapoints into tag:data[]
             // map.setCenter(dataPoints[0].location);
-            searchDataMap.set(tag, dataPoints);
-            processHeatmapData();
+            // searchDataMap.set(tag, dataPoints);
+            // processHeatmapData();
+            heatmap.setData(dataPoints);
+
         })
         .catch((error) => {
             console.log(error);
@@ -127,7 +145,7 @@ function processHeatmapData() {
     const eqSet = (xs, ys) =>
         xs.size === ys.size &&
         [...xs].every((x) => ys.has(x));
-    
+
     // error checking
     if (!eqSet(userTags, searchTags)) {
         console.log("unmatched: user:", userTags, " search:", searchTags);
@@ -148,7 +166,7 @@ function toggleHeatmap() {
     heatmap.setMap(heatmap.getMap() ? null : map);
 }
 
-function changeGradient() {
+function toggeGradient() {
     const gradient = [
         "rgba(0, 255, 255, 0)",
         "rgba(0, 255, 255, 1)",
@@ -169,169 +187,238 @@ function changeGradient() {
     heatmap.set("gradient", heatmap.get("gradient") ? null : gradient);
 }
 
-function changeRadius() {
+function toggeRadius() {
     heatmap.set("radius", heatmap.get("radius") ? null : 20);
 }
 
-function changeOpacity() {
+function toggleOpacity() {
     heatmap.set("opacity", heatmap.get("opacity") ? null : 0.2);
 }
 
-function createMarker(place) {
-    if (!place.geometry || !place.geometry.location) return;
+// const ButtonGroup = () => {
 
-    const marker = new google.maps.Marker({
-        map,
-        position: place.geometry.location,
-    });
+//     const handleButtonClick = (buttonName) => () => {
+//         switch (buttonName) {
+//             case "heatmap":
+//                 toggleHeatmap();
+//                 break;
+//             case "radius":
+//                 toggeRadius();
+//                 break;
+//             case "gradient":
+//                 toggeGradient();
+//                 break;
+//             case "opacity":
+//                 toggleOpacity();
+//                 break;
+//         }
+//         console.log(`${buttonName} pressed`);
+//     };
 
-    google.maps.event.addListener(marker, "click", () => {
-        infowindow.setContent(place.name || "");
-        infowindow.open(map);
-    });
-}
+//     return (
+//         <Stack spacing={1} direction="row">
+//             {/* Buttons with individual onClick handlers */}
+//             <Button variant="contained" onClick={handleButtonClick('heatmap')}>Toggle Heatmap</Button>
+//             <Button variant="contained" onClick={handleButtonClick('radius')}>Change radius</Button>
+//             <Button variant="contained" onClick={handleButtonClick('gradient')}>Change gradient</Button>
+//             <Button variant="contained" onClick={handleButtonClick('opacity')}>Change opacity</Button>
+//         </Stack>
+//     );
+// };
 
-window.initMap = initMap;
 
-const ButtonGroup = () => {
-    // Function for Button 1 click
-    const handleButton1Click = () => {
-        console.log('Button 1 clicked!');
-        toggleHeatmap();
-    };
+const CenterToggleButtonGroup = () => {
+    const theme = useTheme();
+    const [selectedButton, setSelectedButton] = useState("SanJose");
 
-    // Function for Button 2 click
-    const handleButton2Click = () => {
-        console.log('Button 2 clicked!');
-        changeGradient();
-    };
-
-    // Function for Button 3 click
-    const handleButton3Click = () => {
-        console.log('Button 3 clicked!');
-        changeRadius();
-    };
-
-    // Function for Button 4 click
-    const handleButton4Click = () => {
-        console.log('Button 4 clicked!');
-        changeOpacity();
-    };
-
-    return (
-        <div>
-            {/* Buttons with individual onClick handlers */}
-            <button onClick={handleButton1Click}>Toggle Heatmap</button>
-            <button onClick={handleButton2Click}>Change gradient</button>
-            <button onClick={handleButton3Click}>Change radius</button>
-            <button onClick={handleButton4Click}>Change opacity</button>
-        </div>
-    );
-};
-
-const CheckboxGroup = () => {
-    // State to hold checkbox values
-    const [checkboxValues, setCheckboxValues] = useState({
-        restaurant: false,
-        bakery: false,
-        cafe: false,
-        bar: false,
-    });
-
-    // Function to handle checkbox change
-    const handleCheckboxChange = (checkboxName) => {
-        setCheckboxValues((prevValues) => ({
-            ...prevValues,
-            [checkboxName]: !prevValues[checkboxName],
-        }));
-
-        // You can perform additional actions here based on the checkbox value
-        // console.log(`Checkbox ${checkboxName} toggled! New value: ${!checkboxValues[checkboxName]}`);        
-    };
-
-    // Function to handle button click
-    const handleButtonClick = () => {
-        // Print checkbox values
-        console.log('Checkbox Values:', checkboxValues);
-
-        // Using Object.entries()
-        Object.entries(checkboxValues).forEach(([checkbox, value]) => {
-            // console.log(`Checkbox ${checkbox} is ${value ? 'checked' : 'unchecked'}`);
-            if (value) {
-                userTags.add(checkbox);
-            } else {
-                userTags.delete(checkbox);
-                searchDataMap.delete(checkbox);
-            }
-        });
-
-        console.log(userTags);
-        updateHeatmap();
+    const handleToggleButtonChange = (event, newButton) => {
+        if (newButton !== null) {
+            setSelectedButton(newButton);
+        }
+        console.log(`${newButton} pressed`);
     };
 
     return (
-        <div>
-            {/* Checkboxes with onChange event */}
-            <label>
-                <input
-                    type="checkbox"
-                    checked={checkboxValues.restaurant}
-                    onChange={() => handleCheckboxChange('restaurant')}
-                />
-                restaurant
-            </label>
-
-            <label>
-                <input
-                    type="checkbox"
-                    checked={checkboxValues.bakery}
-                    onChange={() => handleCheckboxChange('bakery')}
-                />
-                bakery
-            </label>
-
-            <label>
-                <input
-                    type="checkbox"
-                    checked={checkboxValues.cafe}
-                    onChange={() => handleCheckboxChange('cafe')}
-                />
-                cafe
-            </label>
-
-            <label>
-                <input
-                    type="checkbox"
-                    checked={checkboxValues.bar}
-                    onChange={() => handleCheckboxChange('bar')}
-                />
-                bar
-            </label>
-
-            {/* Button to print checkbox values */}
-            <button onClick={handleButtonClick}>Update</button>
-
-            {/* Display the checkbox values
-            <p>
-                Checkbox Values:{' '}
-                {Object.keys(checkboxValues)
-                    .map((checkbox) => `${checkbox}: ${checkboxValues[checkbox] ? 'checked' : 'unchecked'}`)
-                    .join(', ')}
-            </p> */}
-        </div>
+        <FormControl>
+            <FormLabel id="tag-center-toggle" color="success" focused>2. Map Center</FormLabel>
+            <ToggleButtonGroup
+                value={selectedButton}
+                exclusive
+                onChange={handleToggleButtonChange}
+                aria-label="City buttons group"
+                color='success'
+            >
+                <ToggleButton value="SanJose" aria-label="San Jose">San Jose</ToggleButton>
+                <ToggleButton value="NewYork" aria-label="New York">New York</ToggleButton>
+                <ToggleButton value="Paris" aria-label="Paris">Paris</ToggleButton>
+                <ToggleButton value="Tokyo" aria-label="Tokyo">Tokyo</ToggleButton>
+            </ToggleButtonGroup>
+        </FormControl>
     );
 };
 
-// Clear the existing HTML content
-// document.body.innerHTML = '<div id="app"></div>';
 
-// Render your React component instead
+// const RadioButtonsGroup = () => {
+//     // State to hold the selected radio button value
+//     const [selectedOption, setSelectedOption] = useState('');
+
+//     // Function to handle radio button change
+//     const handleRadioChange = (event) => {
+//         const value = event.target.value;
+//         setSelectedOption(value);
+
+//         // You can perform additional actions here based on the selected value
+//         console.log(`%cSelected option: ${value}`, 'font-weight:bold');
+
+//         updateHeatmap(value);
+//     };
+
+//     return (
+//         <FormControl>
+//             <FormLabel id="tag-row-radio-button-group-label">1. Location Type</FormLabel>
+//             <RadioGroup
+//                 row
+//                 aria-labelledby="tag-row-radio-button-group-label"
+//                 name="row-radio-buttons-group"
+//             >
+//                 <FormControlLabel
+//                     value="restaurant"
+//                     control={<Radio />}
+//                     onChange={handleRadioChange}
+//                     label="Restaurant" />
+
+//                 <FormControlLabel
+//                     value="bakery"
+//                     control={<Radio />}
+//                     onChange={handleRadioChange}
+//                     label="Bakery" />
+
+//                 <FormControlLabel
+//                     value="cafe"
+//                     control={<Radio />}
+//                     onChange={handleRadioChange}
+//                     label="Cafe" />
+
+//                 <FormControlLabel
+//                     value="bar"
+//                     control={<Radio />}
+//                     onChange={handleRadioChange}
+//                     label="Bar" />
+
+//             </RadioGroup>
+//         </FormControl>
+//     );
+// }
+
+const LocationToggleButtonsGroup = () => {
+    // State to hold the selected toggle button value
+    const [selectedOption, setSelectedOption] = useState('');
+
+    // Function to handle toggle button change
+    const handleToggleChange = (event, newOption) => {
+        setSelectedOption(newOption);
+
+        // You can perform additional actions here based on the selected value
+        console.log(`Selected option: ${newOption}`);
+
+        updateHeatmap(newOption);
+    };
+
+    return (
+        <FormControl>
+            <FormLabel id="tag-row-toggle-button-group-label" color="primary" focused>1. Location Type</FormLabel>
+            <ToggleButtonGroup
+                value={selectedOption}
+                exclusive
+                onChange={handleToggleChange}
+                aria-labelledby="tag-row-toggle-button-group-label"
+                name="row-toggle-buttons-group"
+                color='primary'
+            >
+                <ToggleButton value="restaurant" aria-label="Restaurant">
+                    Restaurant
+                </ToggleButton>
+
+                <ToggleButton value="bakery" aria-label="Bakery">
+                    Bakery
+                </ToggleButton>
+
+                <ToggleButton value="cafe" aria-label="Cafe">
+                    Cafe
+                </ToggleButton>
+
+                <ToggleButton value="bar" aria-label="Bar">
+                    Bar
+                </ToggleButton>
+            </ToggleButtonGroup>
+        </FormControl>
+    );
+};
+const SwitchGroup = () => {
+    const [switchStates, setSwitchStates] = useState({
+        heatmap: true,
+        radius: false,
+        gradient: false,
+        opacity: false,
+    });
+
+    const handleSwitchChange = (name) => (event) => {
+        setSwitchStates({ ...switchStates, [name]: event.target.checked });
+
+        // Print the status of the clicked switch
+        switch (name) {
+            case "heatmap":
+                toggleHeatmap();
+                break;
+            case "radius":
+                toggeRadius();
+                break;
+            case "gradient":
+                toggeGradient();
+                break;
+            case "opacity":
+                toggleOpacity();
+                break;
+        }
+        console.log(`${name} Switch: ${event.target.checked ? 'ON' : 'OFF'}`);
+    };
+
+    return (
+        <FormGroup row>
+            <FormControlLabel
+                control={<Switch checked={switchStates.heatmap} onChange={handleSwitchChange('heatmap')} />}
+                label="Heatmap"
+            />
+            <FormControlLabel
+                control={<Switch checked={switchStates.radius} onChange={handleSwitchChange('radius')} />}
+                label="Radius"
+            />
+            <FormControlLabel
+                control={<Switch checked={switchStates.gradient} onChange={handleSwitchChange('gradient')} />}
+                label="Gradient"
+            />
+            <FormControlLabel
+                control={<Switch checked={switchStates.opacity} onChange={handleSwitchChange('opacity')} />}
+                label="Opacity"
+            />
+        </FormGroup>
+    );
+};
+
 const root = createRoot(document.getElementById('root'));
 // root.render(<h1>Hello, world</h1>);
 
 root.render(
     <StrictMode>
-        <ButtonGroup />
-        <CheckboxGroup />
+        <h3>Select a <em>Location Type</em> to display heatmap</h3>
+        <Stack spacing={2} direction="row">
+            <LocationToggleButtonsGroup />
+            <CenterToggleButtonGroup />
+        </Stack>
+
+        <SwitchGroup />
+        <p />
     </StrictMode>
 );
+
+window.initMap = initMap;
