@@ -26,9 +26,9 @@ let mapCenter;
 let currTag;
 
 function initMap() {
-
-    //Default center san jose
-    mapCenter = new google.maps.LatLng(37.3382, -121.8863);
+    //Default center Los Angeles
+    // [34.0522, -118.2437]
+    mapCenter = new google.maps.LatLng(34.0522, -118.2437);
 
     infowindow = new google.maps.InfoWindow();
     map = new google.maps.Map(document.getElementById("map"), {
@@ -47,8 +47,8 @@ function setCenter(center) {
     let lat, lng;
 
     switch (center) {
-        case "SanJose":
-            [lat, lng] = [37.3382, -121.8863];
+        case "LosAngeles":
+            [lat, lng] = [34.0522, -118.2437]
             break;
         case "NewYork":
             [lat, lng] = [40.7128, -74.0060];
@@ -60,7 +60,7 @@ function setCenter(center) {
             [lat, lng] = [35.6795, 139.7700];
             break;
         default: //sydney
-            [lat, lng] = [37.3382, -121.8863];
+            [lat, lng] = [34.0522, -118.2437];
     }
 
     console.log("Selected center:", center, lat, lng);
@@ -232,7 +232,7 @@ const LocationToggleButtonsGroup = () => {
 
 const CenterToggleButtonGroup = () => {
     const theme = useTheme();
-    const [selectedButton, setSelectedButton] = useState("SanJose");
+    const [selectedButton, setSelectedButton] = useState("LosAngeles");
 
     const handleToggleButtonChange = (event, city) => {
         if (city !== null) {
@@ -253,7 +253,7 @@ const CenterToggleButtonGroup = () => {
                 aria-label="City buttons group"
                 color='success'
             >
-                <ToggleButton value="SanJose" aria-label="San Jose">San Jose</ToggleButton>
+                <ToggleButton value="LosAngeles" aria-label="Los Angeles">Los Angeles</ToggleButton>
                 <ToggleButton value="NewYork" aria-label="New York">New York</ToggleButton>
                 <ToggleButton value="Paris" aria-label="Paris">Paris</ToggleButton>
                 <ToggleButton value="Tokyo" aria-label="Tokyo">Tokyo</ToggleButton>
