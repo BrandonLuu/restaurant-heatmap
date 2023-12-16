@@ -12,7 +12,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use(express.static(path.join(__dirname, 'public', "dist")));
 
 app.get('/', (req, res) => {
-  res.send('Hello from App Engine!');
+  // res.send('Hello from App Engine!');
+  app.use(express.static(path.join(__dirname, 'public', "dist")));
+  // res.sendFile(path.join(__dirname, 'public/views/heatmap.html'));
+  res.sendFile(path.join(__dirname, 'public/dist/index.html'));
 });
 
 app.get('/heatmap', (req, res) => {
