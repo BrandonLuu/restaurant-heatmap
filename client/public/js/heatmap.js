@@ -33,7 +33,7 @@ function initMap() {
     infowindow = new google.maps.InfoWindow();
     map = new google.maps.Map(document.getElementById("map"), {
         center: mapCenter,
-        zoom: 13,
+        zoom: 13.4,
     });
 
     heatmap = new google.maps.visualization.HeatmapLayer({
