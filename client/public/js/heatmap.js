@@ -319,7 +319,6 @@ const root = createRoot(document.getElementById('root'));
 
 root.render(
     <StrictMode>
-        <h3>Select a <em>Location Type</em> to display heatmap</h3>
         <Stack spacing={2} direction="row">
             <LocationToggleButtonsGroup />
             <CenterToggleButtonGroup />
