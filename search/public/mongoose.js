@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const db = "restaurant"
-const uri = `mongodb+srv://admin:Tyfg8k3OaOMGxZ23@cluster0.bv3rotn.mongodb.net/${db}?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://admin:thisisatestpassword@cluster0.0xcvi.mongodb.net/${db}?retryWrites=true&w=majority`;
 
 // Model
 // const planetSchema = new mongoose.Schema({

@@ -5,7 +5,8 @@
   "main": "searchServer.js",
   "scripts": {
     "test": "nodemon searchServer.js",
-    "start": "node searchServer.js"
+    "start": "node searchServer.js",
+    "deploy": "gcloud app deploy search.yaml"
   },
   "author": "",
   "license": "ISC",

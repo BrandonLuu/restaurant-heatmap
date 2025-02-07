@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Heatmap Demo</title>
+  <title>Restaurant Heatmap</title>
   <link rel="stylesheet" type="text/css" href="css/style.css" />
 
 </head>
@@ -19,15 +19,18 @@
       font-size:15px;
     }
   </style>
-  <h3>Select a <em>Dining Option</em> to display heatmap at <em>Map Center </em></h3><p>[demo displays only 20 locations]</p>
+  <h3>Select a <em>Location Type</em> to display the heatmap at <em>Map Center </em></h3>
+  <br>
+  <p>Demo limited to only 20 locations</p>
   <h1></h1>
   <div id="root">
     <!-- This div is where our app will run -->
   </div>
-  
+
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs&callback=initMap&libraries=places,visualization&v=weekly"
-    defer></script>
+    defer>
+  </script>
 </body>
 
 <div id="map"></div>

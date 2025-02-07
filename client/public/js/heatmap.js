@@ -110,7 +110,7 @@ function searchForTagLocation(center, tag) {
     const requestLocation = `${req.location.lat()}%2C${req.location.lng()}`;
 
     // Search using Custom Endpoint
-    // axios.get(`https://localhost:8081/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
+    // axios.get(`http://localhost:8081/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
     axios.get(`https://search-dot-absolute-realm-165220.wl.r.appspot.com/search/location=${requestLocation}&radius=${req.radius}&type=${req.type}&key=${key}`, {
     })
         .then((response) => {
@@ -166,7 +166,7 @@ function toggleHeatmap() {
     heatmap.setMap(heatmap.getMap() ? null : map);
 }
 
-function toggeGradient() {
+function toggleGradient() {
     const gradient = [
         "rgba(0, 255, 255, 0)",
         "rgba(0, 255, 255, 1)",
@@ -187,7 +187,7 @@ function toggeGradient() {
     heatmap.set("gradient", heatmap.get("gradient") ? null : gradient);
 }
 
-function toggeRadius() {
+function toggleRadius() {
     heatmap.set("radius", heatmap.get("radius") ? null : 20);
 }
 
@@ -280,10 +280,10 @@ const SwitchGroup = () => {
                 toggleHeatmap();
                 break;
             case "radius":
-                toggeRadius();
+                toggleRadius();
                 break;
             case "gradient":
-                toggeGradient();
+                toggleGradient();
                 break;
             case "opacity":
                 toggleOpacity();

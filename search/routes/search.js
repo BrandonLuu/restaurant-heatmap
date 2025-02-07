@@ -2,14 +2,14 @@ const express = require("express")
 const router = express.Router()
 const axios = require('axios');
 const db = require("../public/mongoose.js");
+const cors = require("cors")
 
-router.use(logger);
-
+router.use(cors());
 // router.use(cors({origin: 'https://maps.googleapis.com'}));
-let corsOption = {
-    origin: 'https://maps.googleapis.com',
-    optionsSuccessStatus: 200
-}
+// let corsOption = {
+//     origin: 'https://maps.googleapis.com',
+//     optionsSuccessStatus: 200
+// }
 
 router.get("/", (req, res) => {
     console.log(req.query.name)
@@ -23,10 +23,10 @@ router.get("/", (req, res) => {
         &key=YOUR_API_KEY`);
 });
 
-router.get("/new", (req, res) => {
-    res.render("users");
+// router.get("/new", (req, res) => {
+    // res.render("users");
     // res.send(`api ${req.params.id}`);
-});
+// });
 
 router.post("/", (req, res) => {
     const isValid = false
@@ -39,8 +39,8 @@ router.post("/", (req, res) => {
     }
 });
 
-http://localhost:8081/search/location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs
-https://search-dot-absolute-realm-165220.wl.r.appspot.com/search/location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs
+// http://localhost:8081/search/location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs
+// https://search-dot-absolute-realm-165220.wl.r.appspot.com/search/location=-33.8670522%2C151.1957362&radius=1500&type=restaurant&key=AIzaSyA49c2e-kWx5zUhzHdNT7CwPYJ-ojvrtEs
 
 router.get("/location=:location&radius=:radius&type=:type&key=:key", async (req, res) => {
     try {
@@ -80,8 +80,13 @@ router.get("/location=:location&radius=:radius&type=:type&key=:key", async (req,
         res.send(error);
     }
     finally {
-        await db.close();
+        try {
+            await db.close();
+        } catch (closeError) {
+            console.error("Error closing DB:", closeError);
+        }
     }
+    
 });
 
 // router
@@ -107,5 +112,6 @@ function logger(req, res, next) {
     console.log(req.originalUrl)
     next()
 };
+router.use(logger);
 
 module.exports = router

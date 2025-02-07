@@ -8,7 +8,7 @@
     "start": "node server.js",
     "build": "webpack",
     "dev": "webpack serve",
-    "upload": "gcloud app deploy client.yaml"
+    "deploy": "gcloud app deploy client.yaml"
   },
   "author": "",
   "license": "ISC",
