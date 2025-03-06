@@ -1,0 +1,15 @@
+runtime: nodejs22
+env: standard
+# instance_class: F1
+
+env_variables:
+  MONGODB_URI: "mongodb+srv://admin:thisisatestpassword@cluster0.0xcvi.mongodb.net/heatmap?retryWrites=true&w=majority"
+
+handlers:
+  - url: /static
+    static_dir: public
+    secure: always
+
+  - url: /.*
+    script: auto
+    secure: always
