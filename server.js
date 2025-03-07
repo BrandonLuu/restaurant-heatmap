@@ -39,6 +39,7 @@ const locationCoordinates = {
 
 const isDev = false; // Set false to false in production
 
+// Add a local API key to the .env file if you want
 const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGLE_MAPS_API_KEY;
 
 // Function to fetch places data with pagination

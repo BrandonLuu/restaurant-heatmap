@@ -23,10 +23,10 @@ const App = () => {
     };
 
     // Colors for different types
-    const typeColors = {
+    const locationTypes = {
         'Restaurant': '#FF0000', // Red
-        'Bar': '#0000FF',        // Blue
         'Cafe': '#00FF00',       // Green
+        'Bar': '#0000FF',        // Blue
         'Bakery': '#FFA500'      // Orange
     };
 
@@ -172,7 +172,7 @@ const App = () => {
             <div className="w-1/4 bg-gray-100 p-4 flex flex-col shadow-md">
                 <div className="mb-4">
                     <h2 className="text-xl font-bold mb-2">Heatmap Overview</h2>
-                    <p className="text-md">This heatmap visualizes the density of selected location types (e.g., Restaurants, Bars) in a 10 km × 10 km square in various cities.
+                    <p className="text-md">This heatmap visualizes the density of selected location types (e.g., Restaurants, Cafes) in a 10 km × 10 km square in various cities.
                         The data is obtained through the <a href="https://developers.google.com/maps/documentation/places/web-service/search-nearby" className="text-blue-600 dark:text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">Google Maps Nearby Search API</a>.
                         <br></br>
                         <br></br>
@@ -198,9 +198,9 @@ const App = () => {
                 </div>
 
                 <div>
-                    <h2 className="text-xl font-bold mb-4">Location Types</h2>
+                    <h2 className="text-xl font-bold mb-4">Location Type</h2>
                     <div className="grid grid-cols-2 gap-2">
-                        {Object.keys(typeColors).map((type) => (
+                        {Object.keys(locationTypes).map((type) => (
                             <button
                                 key={type}
                                 onClick={() => handleTypeClick(type)}
