@@ -8,8 +8,8 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// For pregenerating data
-const preloadDB = false;
+// For populate data
+const populateData = false;
 
 // Middleware
 app.use(cors());
@@ -37,6 +37,10 @@ const locationCoordinates = {
     'Paris': { lat: 48.8566, lng: 2.3522 }
 };
 
+const isDev = false; // Set false to false in production
+
+const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGLE_MAPS_API_KEY;
+
 // Function to fetch places data with pagination
 const fetchPlacesData = async (location, type) => {
     const [centerLat, centerLng] = [locationCoordinates[location].lat, locationCoordinates[location].lng];
@@ -45,7 +49,7 @@ const fetchPlacesData = async (location, type) => {
     const generateSearchPoints = (centerLat, centerLng, radius) => {
         const points = [];
         const offset = (radius / 111320) / 2; // Adjust offset for 50% coverage
-        
+
         for (let i = -2; i <= 2; i++) { // Increase range to ensure coverage
             for (let j = -2; j <= 2; j++) {
                 points.push({
@@ -75,7 +79,7 @@ const fetchPlacesData = async (location, type) => {
                     location: `${point.lat},${point.lng}`,
                     radius: searchRadius.toString(),
                     type: type.toLowerCase(),
-                    key: process.env.GOOGLE_MAPS_API_KEY,
+                    key: apiKey,
                     pagetoken: nextPageToken
                 }
             });
@@ -99,7 +103,9 @@ const fetchPlacesData = async (location, type) => {
             if (nextPageToken && pointResults < maxResultsPerPoint) {
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
-            console.log(`Search point (${point.lat}, ${point.lng}): ${pointResults} results`);
+            if (isDev) {
+                console.log(`Search point (${point.lat}, ${point.lng}): ${pointResults} results`);
+            }
         } while (nextPageToken && pointResults < maxResultsPerPoint);
     }
 
@@ -115,12 +121,14 @@ app.get('/api/places/:location/:type', async (req, res) => {
         // Check if the cache entry exists
         const cachedData = await Place.findOne({ location, type });
         // const cachedData = NaN;
-        
+
         if (cachedData) {
             return res.json({ data: cachedData.data });
         }
 
-        console.log("Fetching data from Google Maps API");
+        if (isDev) {
+            console.log("Fetching data from Google Maps API");
+        }
         // If no cache, fetch from Google Maps API with pagination
         const placesData = await fetchPlacesData(location, type);
 
@@ -148,9 +156,13 @@ const loadDatabaseData = async () => {
         for (const type of types) {
             let cachedData = await Place.findOne({ location, type });
             if (cachedData) {
-                console.log(`Data for ${location} - ${type} is loaded in the database.`);
+                if (isDev) {
+                    console.log(`Data for ${location} - ${type} is loaded in the database.`);
+                }
             } else {
-                console.log(`Data for ${location} - ${type} is missing in the database. Fetching data...`);
+                if (isDev) {
+                    console.log(`Data for ${location} - ${type} is missing in the database. Fetching data...`);
+                }
                 try {
                     const placesData = await fetchPlacesData(location, type);
                     await Place.create({
@@ -159,7 +171,9 @@ const loadDatabaseData = async () => {
                         data: placesData,
                         timestamp: new Date()
                     });
-                    console.log(`Data for ${location} - ${type} has been fetched and stored.`);
+                    if (isDev) {
+                        console.log(`Data for ${location} - ${type} has been fetched and stored.`);
+                    }
                 } catch (error) {
                     console.error(`Failed to fetch data for ${location} - ${type}:`, error);
                 }
@@ -169,7 +183,7 @@ const loadDatabaseData = async () => {
 };
 
 // Call the preload function
-if(preloadDB) {
+if (populateData) {
     loadDatabaseData();
 }
 
@@ -179,5 +193,7 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    if (isDev) {
+        console.log(`Server is running on port ${PORT}`);
+    }
 });

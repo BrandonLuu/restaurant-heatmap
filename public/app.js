@@ -11,7 +11,7 @@ const App = () => {
     const [loadingStatus, setLoadingStatus] = useState('');
     const [dots, setDots] = useState('');
 
-    const isDev = true; // Set false to false in production
+    const isDev = false; // Set false to false in production
     const baseUrl = isDev ? 'http://localhost:8080' : '';
 
     // Predefined coordinates for each city
@@ -105,7 +105,7 @@ const App = () => {
         try {
             // Call the combined endpoint
             const response = await fetch(`${baseUrl}/api/places/${selectedLocation}/${selectedType}`);
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error fetching data:', errorText);
@@ -136,37 +136,6 @@ const App = () => {
             heatmap.setOptions({
                 gradient: getGradient()
             });
-            
-            // Add tooltips on hover using AdvancedMarkerElement with transparent icon
-            // heatmapData.forEach(point => {
-            //     const marker = new AdvancedMarkerElement({
-            //         position: point.location,
-            //         map: map,
-            //         icon: {
-            //             path: google.maps.SymbolPath.CIRCLE,
-            //             scale: 0, // Invisible marker
-            //             fillOpacity: 0,
-            //             strokeOpacity: 0
-            //         },
-            //         title: `Density: ${point.weight}`
-            //     });
-
-            //     const infoWindow = new google.maps.InfoWindow({
-            //         content: `Density: ${point.weight}`
-            //     });
-
-            //     marker.addListener('mouseover', () => {
-            //         infoWindow.open({
-            //             anchor: marker,
-            //             map,
-            //             shouldFocus: false
-            //         });
-            //     });
-
-            //     marker.addListener('mouseout', () => {
-            //         infoWindow.close();
-            //     });
-            // });
 
             setIsLoading(false);
             clearInterval(interval); // Stop the dots animation
@@ -201,36 +170,49 @@ const App = () => {
         <div className="flex h-screen w-full">
             {/* Sidebar - 25% width */}
             <div className="w-1/4 bg-gray-100 p-4 flex flex-col shadow-md">
-                <h2 className="text-xl font-bold mb-4">Map Center</h2>
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                    {['Los Angeles', 'New York', 'Tokyo', 'Paris'].map((location) => (
-                        <button
-                            key={location}
-                            onClick={() => handleLocationClick(location)}
-                            className={`py-2 px-4 rounded ${selectedLocation === location
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-200 hover:bg-gray-300'
-                                }`}
-                        >
-                            {location}
-                        </button>
-                    ))}
+                <div className="mb-4">
+                    <h2 className="text-xl font-bold mb-2">Heatmap Overview</h2>
+                    <p className="text-md">This heatmap visualizes the density of selected location types (e.g., Restaurants, Bars) in a 10 km × 10 km square in various cities.
+                        The data is obtained through the <a href="https://developers.google.com/maps/documentation/places/web-service/search-nearby" className="text-blue-600 dark:text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">Google Maps Nearby Search API</a>.
+                        <br></br>
+                        <br></br>
+                        Use the buttons below to change the city and type of location displayed on the map. The heatmap will update to reflect the density of the selected type in the chosen city.</p>
                 </div>
 
-                <h2 className="text-xl font-bold mb-4">Location Types</h2>
-                <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(typeColors).map((type) => (
-                        <button
-                            key={type}
-                            onClick={() => handleTypeClick(type)}
-                            className={`py-2 px-4 rounded text-center ${selectedType === type
+                <div>
+                    <h2 className="text-xl font-bold mb-4">City</h2>
+                    <div className="grid grid-cols-2 gap-2 mb-6">
+                        {['Los Angeles', 'New York', 'Tokyo', 'Paris'].map((location) => (
+                            <button
+                                key={location}
+                                onClick={() => handleLocationClick(location)}
+                                className={`py-2 px-4 rounded ${selectedLocation === location
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-200 hover:bg-gray-300'
+                                    }`}
+                            >
+                                {location}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <h2 className="text-xl font-bold mb-4">Location Types</h2>
+                    <div className="grid grid-cols-2 gap-2">
+                        {Object.keys(typeColors).map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => handleTypeClick(type)}
+                                className={`py-2 px-4 rounded text-center ${selectedType === type
                                     ? 'bg-green-500 text-white'
                                     : 'bg-gray-200 hover:bg-gray-300'
-                                }`}
-                        >
-                            <span>{type}</span>
-                        </button>
-                    ))}
+                                    }`}
+                            >
+                                <span>{type}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 {<div className="mt-4">
                     {isLoading && (
@@ -252,7 +234,7 @@ const App = () => {
                     </div>
                 </div>
                 <div className="footer">
-                    <p>Made using MERN + Tailwind by <a href="https://github.com/brandonluu" className="text-blue-600 dark:text-blue-500 hover:underline">Brandon Luu</a></p>
+                    <p>Made with MERN + Tailwind by <a href="https://github.com/brandonluu" className="text-blue-600 dark:text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">Brandon Luu</a></p>
                 </div>
 
             </div>
