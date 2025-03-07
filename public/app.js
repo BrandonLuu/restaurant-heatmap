@@ -11,7 +11,7 @@ const App = () => {
     const [loadingStatus, setLoadingStatus] = useState('');
     const [dots, setDots] = useState('');
 
-    const isDev = false; // Set this to false in production
+    const isDev = true; // Set false to false in production
     const baseUrl = isDev ? 'http://localhost:8080' : '';
 
     // Predefined coordinates for each city
@@ -30,41 +30,53 @@ const App = () => {
         'Bakery': '#FFA500'      // Orange
     };
 
-    // Function to generate gradient based on selected type
-    const getGradient = (type) => {
+    // Function to generate a 'Jet' style gradient for the heatmap
+    const getGradient = () => {
         return [
-            'rgba(0, 0, 0, 0)',
-            `rgba(${hexToRgb(typeColors[type])}, 0.5)`,
-            `rgba(${hexToRgb(typeColors[type])}, 0.7)`,
-            `rgba(${hexToRgb(typeColors[type])}, 0.9)`,
-            `rgba(${hexToRgb(typeColors[type])}, 1)`
+            'rgba(0, 0, 255, 0)',   // Blue, transparent
+            'rgba(0, 0, 255, 1)',   // Blue
+            'rgba(0, 255, 255, 1)', // Cyan
+            'rgba(0, 255, 0, 1)',   // Green
+            'rgba(255, 255, 0, 1)', // Yellow
+            'rgba(255, 0, 0, 1)'    // Red
         ];
     };
 
     // Initialize Google Maps
     useEffect(() => {
-        const mapInstance = new google.maps.Map(document.getElementById("map"), {
-            center: locationCoordinates['Los Angeles'], // Use default location
-            zoom: 13,
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
-            styles: [
-                {
-                    featureType: "poi",
-                    elementType: "labels",
-                    stylers: [{ visibility: "off" }]
-                }
-            ]
-        });
+        const initializeMap = async () => {
+            // Request needed libraries.
+            const { Map } = await google.maps.importLibrary("maps");
+            // const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            const { HeatmapLayer } = await google.maps.importLibrary("visualization");
 
-        // Initialize empty heatmap layer with reusable gradient
-        const heatmapLayer = new google.maps.visualization.HeatmapLayer({
-            map: mapInstance,
-            radius: 30,
-            gradient: getGradient(selectedType) // Use the reusable gradient function
-        });
+            // The map, centered at the default location
+            const mapInstance = new Map(document.getElementById("map"), {
+                center: locationCoordinates['Los Angeles'], // Use default location
+                zoom: 13,
+                mapId: "DEMO_MAP_ID",
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
 
-        setMap(mapInstance);
-        setHeatmap(heatmapLayer);
+
+            // Initialize empty heatmap layer with reusable gradient
+            const heatmapLayer = new HeatmapLayer({
+                map: mapInstance,
+                radius: 30,
+                gradient: getGradient() // Use the reusable gradient function
+            });
+
+            setMap(mapInstance);
+            setHeatmap(heatmapLayer);
+        };
+
+        initializeMap();
     }, []);
 
     // Update map when location or type changes
@@ -80,7 +92,7 @@ const App = () => {
         if (!map || !heatmap) return;
 
         setIsLoading(true);
-        setLoadingStatus('Checking cache in database');
+        setLoadingStatus('Loading data');
 
         // Start the dots animation
         const interval = setInterval(() => {
@@ -122,9 +134,40 @@ const App = () => {
 
             heatmap.setData(heatmapData);
             heatmap.setOptions({
-                gradient: getGradient(selectedType)
+                gradient: getGradient()
             });
             
+            // Add tooltips on hover using AdvancedMarkerElement with transparent icon
+            // heatmapData.forEach(point => {
+            //     const marker = new AdvancedMarkerElement({
+            //         position: point.location,
+            //         map: map,
+            //         icon: {
+            //             path: google.maps.SymbolPath.CIRCLE,
+            //             scale: 0, // Invisible marker
+            //             fillOpacity: 0,
+            //             strokeOpacity: 0
+            //         },
+            //         title: `Density: ${point.weight}`
+            //     });
+
+            //     const infoWindow = new google.maps.InfoWindow({
+            //         content: `Density: ${point.weight}`
+            //     });
+
+            //     marker.addListener('mouseover', () => {
+            //         infoWindow.open({
+            //             anchor: marker,
+            //             map,
+            //             shouldFocus: false
+            //         });
+            //     });
+
+            //     marker.addListener('mouseout', () => {
+            //         infoWindow.close();
+            //     });
+            // });
+
             setIsLoading(false);
             clearInterval(interval); // Stop the dots animation
 
@@ -158,7 +201,7 @@ const App = () => {
         <div className="flex h-screen w-full">
             {/* Sidebar - 25% width */}
             <div className="w-1/4 bg-gray-100 p-4 flex flex-col shadow-md">
-                <h2 className="text-xl font-bold mb-4">Locations</h2>
+                <h2 className="text-xl font-bold mb-4">Map Center</h2>
                 <div className="grid grid-cols-2 gap-2 mb-6">
                     {['Los Angeles', 'New York', 'Tokyo', 'Paris'].map((location) => (
                         <button
@@ -180,26 +223,27 @@ const App = () => {
                         <button
                             key={type}
                             onClick={() => handleTypeClick(type)}
-                            className={`py-2 px-4 rounded flex items-center justify-between ${selectedType === type
+                            className={`py-2 px-4 rounded text-center ${selectedType === type
                                     ? 'bg-green-500 text-white'
                                     : 'bg-gray-200 hover:bg-gray-300'
                                 }`}
                         >
                             <span>{type}</span>
-                            <span
-                                className="w-4 h-4 rounded-full ml-2"
-                                style={{ backgroundColor: typeColors[type] }}
-                            ></span>
                         </button>
                     ))}
                 </div>
+                {<div className="mt-4">
+                    {isLoading && (
+                        <p className="mt-2 text-blue-600">{loadingStatus}{dots}</p>
+                    )}
+                </div>}
 
-                <div className="mt-4">
+                <div className="mt-auto">
                     <div className="bg-white p-4 rounded shadow">
                         <h3 className="font-bold mb-2">Heatmap Legend</h3>
                         <p className="text-sm mb-2">Higher density areas appear brighter.</p>
                         <div className="h-6 w-full rounded" style={{
-                            background: `linear-gradient(to right, rgba(${hexToRgb(typeColors[selectedType])}, 0.1), rgba(${hexToRgb(typeColors[selectedType])}, 1))`
+                            background: 'linear-gradient(to right, rgba(0, 0, 255, 0), rgba(0, 0, 255, 1), rgba(0, 255, 255, 1), rgba(0, 255, 0, 1), rgba(255, 255, 0, 1), rgba(255, 0, 0, 1))'
                         }}></div>
                         <div className="flex justify-between text-xs mt-1">
                             <span>Low density</span>
@@ -207,19 +251,10 @@ const App = () => {
                         </div>
                     </div>
                 </div>
-
-                <div className="mt-auto">
-                    <div className="bg-gray-200 p-4 rounded">
-                        <p className="font-bold">Selected Location:</p>
-                        <p>{selectedLocation}</p>
-                        <p className="font-bold mt-2">Selected Type:</p>
-                        <p>{selectedType}</p>
-                        {isLoading && (
-                            <p className="mt-2 text-blue-600">{loadingStatus}{dots}</p>
-                        )}
-                    </div>
-                    <p>Created by <a href="https://github.com/brandonluu" className="text-blue-600 dark:text-blue-500 hover:underline">Brandon Luu</a></p>
+                <div className="footer">
+                    <p>Made using MERN + Tailwind by <a href="https://github.com/brandonluu" className="text-blue-600 dark:text-blue-500 hover:underline">Brandon Luu</a></p>
                 </div>
+
             </div>
 
             {/* Google Maps Container - 75% width */}

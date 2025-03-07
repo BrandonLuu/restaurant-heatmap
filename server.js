@@ -8,6 +8,9 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// For pregenerating data
+const preloadDB = false;
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -26,53 +29,82 @@ const placeSchema = new mongoose.Schema({
 
 const Place = mongoose.model('Place', placeSchema);
 
+// Centralized locations data
+const locationCoordinates = {
+    'Los Angeles': { lat: 34.0522, lng: -118.2437 },
+    'New York': { lat: 40.7128, lng: -74.0060 },
+    'Tokyo': { lat: 35.6795, lng: 139.7700 },
+    'Paris': { lat: 48.8566, lng: 2.3522 }
+};
+
 // Function to fetch places data with pagination
 const fetchPlacesData = async (location, type) => {
-    const locationCoordinates = {
-        'Los Angeles': '34.0522,-118.2437',
-        'New York': '40.7128,-74.0060',
-        'Tokyo': '35.6795,139.7700',
-        'Paris': '48.8566,2.3522'
+    const [centerLat, centerLng] = [locationCoordinates[location].lat, locationCoordinates[location].lng];
+
+    // Generate search points in a grid pattern around the center
+    const generateSearchPoints = (centerLat, centerLng, radius) => {
+        const points = [];
+        const offset = (radius / 111320) / 2; // Adjust offset for 50% coverage
+        
+        for (let i = -2; i <= 2; i++) { // Increase range to ensure coverage
+            for (let j = -2; j <= 2; j++) {
+                points.push({
+                    lat: centerLat + (i * offset),
+                    lng: centerLng + (j * offset * Math.cos(centerLat * Math.PI / 180))
+                });
+            }
+        }
+        return points;
     };
 
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json`;
-    let placesData = [];
-    let nextPageToken = null;
-    let totalResults = 0;
-    const maxResults = 60; // Limit to 60 results
+    let placesData = new Set(); // Use Set to avoid duplicates
+    const maxResultsPerPoint = 60; // Max results Google Maps API allows per point
+    const searchRadius = 2000; // Reduced radius for better coverage
 
-    do {
-        const response = await axios.get(url, {
-            params: {
-                location: locationCoordinates[location],
-                radius: '5000',
-                type: type.toLowerCase(),
-                key: process.env.GOOGLE_MAPS_API_KEY,
-                pagetoken: nextPageToken
+    const searchPoints = generateSearchPoints(centerLat, centerLng, 5000);
+
+    // Search from each point
+    for (const point of searchPoints) {
+        let nextPageToken = null;
+        let pointResults = 0;
+
+        do {
+            const response = await axios.get(url, {
+                params: {
+                    location: `${point.lat},${point.lng}`,
+                    radius: searchRadius.toString(),
+                    type: type.toLowerCase(),
+                    key: process.env.GOOGLE_MAPS_API_KEY,
+                    pagetoken: nextPageToken
+                }
+            });
+
+            const results = response.data.results.map(place => ({
+                location: {
+                    lat: place.geometry.location.lat,
+                    lng: place.geometry.location.lng
+                },
+                weight: place.rating || 1
+            }));
+
+            // Add results to Set using stringified version for deduplication
+            results.forEach(result => {
+                placesData.add(JSON.stringify(result));
+            });
+            pointResults += results.length;
+
+            nextPageToken = response.data.next_page_token;
+
+            if (nextPageToken && pointResults < maxResultsPerPoint) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
-        });
+            console.log(`Search point (${point.lat}, ${point.lng}): ${pointResults} results`);
+        } while (nextPageToken && pointResults < maxResultsPerPoint);
+    }
 
-        const results = response.data.results.map(place => ({
-            location: {
-                lat: place.geometry.location.lat,
-                lng: place.geometry.location.lng
-            },
-            weight: place.rating || 1
-        }));
-
-        placesData.push(...results);
-        totalResults += results.length;
-
-        nextPageToken = response.data.next_page_token;
-
-        // Google Maps API requires a short delay before requesting the next page
-        if (nextPageToken && totalResults < maxResults) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-        console.log("nextPageToken", nextPageToken);
-        console.log("Total results:", totalResults);
-    } while (nextPageToken && totalResults < maxResults);
-    return placesData;
+    // Convert Set back to array of objects
+    return Array.from(placesData).map(item => JSON.parse(item));
 };
 
 // Combined endpoint for cache and Google Maps API
@@ -82,7 +114,8 @@ app.get('/api/places/:location/:type', async (req, res) => {
 
         // Check if the cache entry exists
         const cachedData = await Place.findOne({ location, type });
-
+        // const cachedData = NaN;
+        
         if (cachedData) {
             return res.json({ data: cachedData.data });
         }
@@ -105,6 +138,40 @@ app.get('/api/places/:location/:type', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch places data' });
     }
 });
+
+// Function to preload data in the database for all locations and types
+const loadDatabaseData = async () => {
+    const locations = Object.keys(locationCoordinates);
+    const types = ['Restaurant', 'Bar', 'Cafe', 'Bakery'];
+
+    for (const location of locations) {
+        for (const type of types) {
+            let cachedData = await Place.findOne({ location, type });
+            if (cachedData) {
+                console.log(`Data for ${location} - ${type} is loaded in the database.`);
+            } else {
+                console.log(`Data for ${location} - ${type} is missing in the database. Fetching data...`);
+                try {
+                    const placesData = await fetchPlacesData(location, type);
+                    await Place.create({
+                        location,
+                        type,
+                        data: placesData,
+                        timestamp: new Date()
+                    });
+                    console.log(`Data for ${location} - ${type} has been fetched and stored.`);
+                } catch (error) {
+                    console.error(`Failed to fetch data for ${location} - ${type}:`, error);
+                }
+            }
+        }
+    }
+};
+
+// Call the preload function
+if(preloadDB) {
+    loadDatabaseData();
+}
 
 // Serve static files
 app.get('*', (req, res) => {
