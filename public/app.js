@@ -1,6 +1,37 @@
 // React imports are handled by the script tags in index.html
 const { useState, useEffect } = React;
 
+const isDev = false; // Set false to false in production
+const baseUrl = isDev ? 'http://localhost:8080' : '';
+
+// Predefined coordinates for each city
+const locationCoordinates = {
+    'Los Angeles': { lat: 34.0522, lng: -118.2437 },
+    'New York': { lat: 40.7128, lng: -74.0060 },
+    'Tokyo': { lat: 35.6795, lng: 139.7700 },
+    'Paris': { lat: 48.8566, lng: 2.3522 }
+};
+
+// Colors for different types
+const locationTypes = {
+    'Restaurant': '#FF0000', // Red
+    'Cafe': '#00FF00',       // Green
+    'Bar': '#0000FF',        // Blue
+    'Bakery': '#FFA500'      // Orange
+};
+
+// Function to generate a 'Jet' style gradient for the heatmap
+const getGradient = () => {
+    return [
+        'rgba(0, 0, 255, 0)',   // Blue, transparent
+        'rgba(0, 0, 255, 1)',   // Blue
+        'rgba(0, 255, 255, 1)', // Cyan
+        'rgba(0, 255, 0, 1)',   // Green
+        'rgba(255, 255, 0, 1)', // Yellow
+        'rgba(255, 0, 0, 1)'    // Red
+    ];
+};
+
 // Main App Component
 const App = () => {
     const [selectedLocation, setSelectedLocation] = useState('Los Angeles'); // Set LA as default
@@ -11,43 +42,11 @@ const App = () => {
     const [loadingStatus, setLoadingStatus] = useState('');
     const [dots, setDots] = useState('');
 
-    const isDev = false; // Set false to false in production
-    const baseUrl = isDev ? 'http://localhost:8080' : '';
-
-    // Predefined coordinates for each city
-    const locationCoordinates = {
-        'Los Angeles': { lat: 34.0522, lng: -118.2437 },
-        'New York': { lat: 40.7128, lng: -74.0060 },
-        'Tokyo': { lat: 35.6795, lng: 139.7700 },
-        'Paris': { lat: 48.8566, lng: 2.3522 }
-    };
-
-    // Colors for different types
-    const locationTypes = {
-        'Restaurant': '#FF0000', // Red
-        'Cafe': '#00FF00',       // Green
-        'Bar': '#0000FF',        // Blue
-        'Bakery': '#FFA500'      // Orange
-    };
-
-    // Function to generate a 'Jet' style gradient for the heatmap
-    const getGradient = () => {
-        return [
-            'rgba(0, 0, 255, 0)',   // Blue, transparent
-            'rgba(0, 0, 255, 1)',   // Blue
-            'rgba(0, 255, 255, 1)', // Cyan
-            'rgba(0, 255, 0, 1)',   // Green
-            'rgba(255, 255, 0, 1)', // Yellow
-            'rgba(255, 0, 0, 1)'    // Red
-        ];
-    };
-
-    // Initialize Google Maps
+    // Initialize map when component mounts
     useEffect(() => {
         const initializeMap = async () => {
             // Request needed libraries.
             const { Map } = await google.maps.importLibrary("maps");
-            // const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
             const { HeatmapLayer } = await google.maps.importLibrary("visualization");
 
             // The map, centered at the default location
@@ -64,7 +63,6 @@ const App = () => {
                 ]
             });
 
-
             // Initialize empty heatmap layer with reusable gradient
             const heatmapLayer = new HeatmapLayer({
                 map: mapInstance,
@@ -75,9 +73,15 @@ const App = () => {
             setMap(mapInstance);
             setHeatmap(heatmapLayer);
         };
-
-        initializeMap();
+        initializeMap()
     }, []);
+
+    // Update map when type changes without changing center
+    useEffect(() => {
+        if (map && selectedType) {
+            fetchPlacesForHeatmap();
+        }
+    }, [selectedType, map]);
 
     // Update map when location or type changes
     useEffect(() => {
@@ -85,7 +89,7 @@ const App = () => {
             map.setCenter(locationCoordinates[selectedLocation]);
             fetchPlacesForHeatmap();
         }
-    }, [selectedLocation, selectedType, map]);
+    }, [selectedLocation, map]);
 
     // Fetch places and update heatmap
     const fetchPlacesForHeatmap = async () => {
