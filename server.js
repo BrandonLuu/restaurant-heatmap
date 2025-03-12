@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 8080;
 
 // For populate data
 const populateData = false;
+const isDev = false; // Set false to false in production
+// Add a local API key to the .env file if you want
+const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGLE_MAPS_API_KEY;
+
 
 // Middleware
 app.use(cors());
@@ -36,11 +40,6 @@ const locationCoordinates = {
     'Tokyo': { lat: 35.6795, lng: 139.7700 },
     'Paris': { lat: 48.8566, lng: 2.3522 }
 };
-
-const isDev = false; // Set false to false in production
-
-// Add a local API key to the .env file if you want
-const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGLE_MAPS_API_KEY;
 
 // Function to fetch places data with pagination
 const fetchPlacesData = async (location, type) => {
@@ -124,6 +123,9 @@ app.get('/api/places/:location/:type', async (req, res) => {
         // const cachedData = NaN;
 
         if (cachedData) {
+            if (isDev) {
+                console.log("Data from cache", cachedData.data);
+            }
             return res.json({ data: cachedData.data });
         }
 
