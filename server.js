@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080;
 
 // For populate data
 const populateData = false;
-const isDev = true; // Set false to false in production
+const isDev = false; // Set false to false in production
 // Add a local API key to the .env file if you want
 const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGLE_MAPS_API_KEY;
 
@@ -18,7 +18,29 @@ const apiKey = isDev ? process.env.GOOGLE_MAPS_API_KEY_LOCAL : process.env.GOOGL
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// app.use(express.static('public'));
+// Configure MIME types and static file serving
+app.use(express.static('public', {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
+        } else if (path.endsWith('.json')) {
+            res.setHeader('Content-Type', 'application/json');
+        } else if (path.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (path.endsWith('.svg')) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+        }
+    }
+}));
+
 
 // MongoDB Connection using environment variable
 mongoose.connect(process.env.MONGODB_URI);

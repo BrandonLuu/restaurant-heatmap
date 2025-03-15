@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import './output.css';
 
 function App() {
-    const isDev = true; // Set false to false in production
+    const isDev = false; // Set false to false in production
     const baseUrl = isDev ? 'http://localhost:8080' : '';
-
 
     const [selectedLocation, setSelectedLocation] = useState('Los Angeles'); // Set LA as default
     const [selectedType, setSelectedType] = useState('Restaurant');
