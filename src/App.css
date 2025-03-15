@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+.w-3\/4 {
+  width: 75%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
